@@ -1,0 +1,10 @@
+[build]
+  # Flutter web build output directory
+  publish = "build/web"
+  command = "flutter build web --release"
+
+# SPA routing — send all paths to index.html so GoRouter handles them
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
