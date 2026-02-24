@@ -23,8 +23,8 @@ class HomeScreen extends StatelessWidget {
             const Text('Your app is connected and ready to go.'),
             const SizedBox(height: 32),
             FilledButton(
-              onPressed: () => context.go('/profile'),
-              child: const Text('Go to Profile'),
+              onPressed: () => context.go('/auth'),
+              child: const Text('Get Started'),
             ),
           ],
         ),

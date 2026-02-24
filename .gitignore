@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing secrets
+android/key.properties
+
+# Secrets & environment files
+.env
+.env.*
+!.env.*.example
+*.env.json
+!*.env.json.example
+
+# Local Netlify folder
+.netlify

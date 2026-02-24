@@ -1,11 +1,11 @@
 {
-    "name": "hooks",
-    "short_name": "hooks",
+    "name": "Hooks",
+    "short_name": "Hooks",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Hooks — connecting people through shared moments.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
