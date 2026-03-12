@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../config/supabase_config.dart';
+
 class AuthScreen extends StatefulWidget {
   final GoTrueClient? _auth;
 
@@ -124,6 +126,54 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+
+    if (email.isEmpty) {
+      setState(() {
+        _errorMessage = 'Enter your email to reset your password.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+      _successMessage = null;
+    });
+
+    try {
+      final siteUrl = SupabaseConfig.siteUrl;
+      await _auth.resetPasswordForEmail(
+        email,
+        redirectTo: siteUrl.isNotEmpty ? siteUrl : null,
+      );
+      if (mounted) {
+        setState(() {
+          _successMessage = 'Check your email for a password reset link.';
+        });
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'An unexpected error occurred.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -162,6 +212,14 @@ class _AuthScreenState extends State<AuthScreen> {
               obscureText: true,
               autofillHints: const [AutofillHints.password],
             ),
+            if (!_isSignUp)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _isLoading ? null : _resetPassword,
+                  child: const Text('Forgot Password?'),
+                ),
+              ),
             const SizedBox(height: 16),
             if (_errorMessage != null)
               Padding(

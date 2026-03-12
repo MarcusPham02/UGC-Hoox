@@ -14,8 +14,9 @@ void main() {
   setUp(() {
     mockAuth = MockGoTrueClient();
     authStreamController = StreamController<AuthState>.broadcast();
-    when(() => mockAuth.onAuthStateChange)
-        .thenAnswer((_) => authStreamController.stream);
+    when(
+      () => mockAuth.onAuthStateChange,
+    ).thenAnswer((_) => authStreamController.stream);
   });
 
   tearDown(() {
@@ -48,10 +49,9 @@ void main() {
       var notified = false;
       notifier.addListener(() => notified = true);
 
-      authStreamController.add(AuthState(
-        AuthChangeEvent.signedIn,
-        _fakeSession(),
-      ));
+      authStreamController.add(
+        AuthState(AuthChangeEvent.signedIn, _fakeSession()),
+      );
 
       // Let the stream event propagate.
       await Future<void>.delayed(Duration.zero);
@@ -68,10 +68,9 @@ void main() {
       var notified = false;
       notifier.addListener(() => notified = true);
 
-      authStreamController.add(const AuthState(
-        AuthChangeEvent.signedOut,
-        null,
-      ));
+      authStreamController.add(
+        const AuthState(AuthChangeEvent.signedOut, null),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -88,10 +87,9 @@ void main() {
       notifier.addListener(() => notifyCount++);
 
       // Already logged out, sending signedOut should not notify.
-      authStreamController.add(const AuthState(
-        AuthChangeEvent.signedOut,
-        null,
-      ));
+      authStreamController.add(
+        const AuthState(AuthChangeEvent.signedOut, null),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -99,14 +97,34 @@ void main() {
       notifier.dispose();
     });
 
+    test('sets isPasswordRecovery on passwordRecovery event', () async {
+      when(() => mockAuth.currentSession).thenReturn(null);
+      final notifier = AuthNotifier(auth: mockAuth);
+
+      expect(notifier.isPasswordRecovery, false);
+
+      authStreamController.add(
+        AuthState(AuthChangeEvent.passwordRecovery, _fakeSession()),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(notifier.isLoggedIn, true);
+      expect(notifier.isPasswordRecovery, true);
+
+      notifier.clearPasswordRecovery();
+      expect(notifier.isPasswordRecovery, false);
+
+      notifier.dispose();
+    });
+
     test('handles tokenRefreshed as still logged in', () async {
       when(() => mockAuth.currentSession).thenReturn(null);
       final notifier = AuthNotifier(auth: mockAuth);
 
-      authStreamController.add(AuthState(
-        AuthChangeEvent.tokenRefreshed,
-        _fakeSession(),
-      ));
+      authStreamController.add(
+        AuthState(AuthChangeEvent.tokenRefreshed, _fakeSession()),
+      );
 
       await Future<void>.delayed(Duration.zero);
 

@@ -17,8 +17,9 @@ void main() {
   setUp(() {
     mockAuth = MockGoTrueClient();
     authStreamController = StreamController<AuthState>.broadcast();
-    when(() => mockAuth.onAuthStateChange)
-        .thenAnswer((_) => authStreamController.stream);
+    when(
+      () => mockAuth.onAuthStateChange,
+    ).thenAnswer((_) => authStreamController.stream);
   });
 
   tearDown(() {
@@ -26,26 +27,29 @@ void main() {
   });
 
   group('Router redirect logic', () {
-    testWidgets('unauthenticated user accessing /access is redirected to /auth',
-        (WidgetTester tester) async {
-      when(() => mockAuth.currentSession).thenReturn(null);
-      final notifier = AuthNotifier(auth: mockAuth);
-      final router = createRouter(notifier);
+    testWidgets(
+      'unauthenticated user accessing /access is redirected to /auth',
+      (WidgetTester tester) async {
+        when(() => mockAuth.currentSession).thenReturn(null);
+        final notifier = AuthNotifier(auth: mockAuth);
+        final router = createRouter(notifier);
 
-      await tester.pumpWidget(_TestApp(router: router));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(_TestApp(router: router));
+        await tester.pumpAndSettle();
 
-      // Navigate to /access while logged out.
-      router.go('/access');
-      await tester.pumpAndSettle();
+        // Navigate to /access while logged out.
+        router.go('/access');
+        await tester.pumpAndSettle();
 
-      expect(router.state.matchedLocation, '/auth');
+        expect(router.state.matchedLocation, '/auth');
 
-      notifier.dispose();
-    });
+        notifier.dispose();
+      },
+    );
 
-    testWidgets('authenticated user accessing /auth is redirected to /access',
-        (WidgetTester tester) async {
+    testWidgets('authenticated user accessing /auth is redirected to /access', (
+      WidgetTester tester,
+    ) async {
       when(() => mockAuth.currentSession).thenReturn(_fakeSession());
       final notifier = AuthNotifier(auth: mockAuth);
       final router = createRouter(notifier);
@@ -61,8 +65,9 @@ void main() {
       notifier.dispose();
     });
 
-    testWidgets('unauthenticated user can access / freely',
-        (WidgetTester tester) async {
+    testWidgets('unauthenticated user can access / freely', (
+      WidgetTester tester,
+    ) async {
       when(() => mockAuth.currentSession).thenReturn(null);
       final notifier = AuthNotifier(auth: mockAuth);
       final router = createRouter(notifier);
@@ -75,8 +80,9 @@ void main() {
       notifier.dispose();
     });
 
-    testWidgets('unauthenticated user can access /auth freely',
-        (WidgetTester tester) async {
+    testWidgets('unauthenticated user can access /auth freely', (
+      WidgetTester tester,
+    ) async {
       when(() => mockAuth.currentSession).thenReturn(null);
       final notifier = AuthNotifier(auth: mockAuth);
       final router = createRouter(notifier);
@@ -92,8 +98,9 @@ void main() {
       notifier.dispose();
     });
 
-    testWidgets('authenticated user can access / freely',
-        (WidgetTester tester) async {
+    testWidgets('authenticated user can access / freely', (
+      WidgetTester tester,
+    ) async {
       when(() => mockAuth.currentSession).thenReturn(_fakeSession());
       final notifier = AuthNotifier(auth: mockAuth);
       final router = createRouter(notifier);
@@ -106,8 +113,9 @@ void main() {
       notifier.dispose();
     });
 
-    testWidgets('redirect triggers when auth state changes',
-        (WidgetTester tester) async {
+    testWidgets('redirect triggers when auth state changes', (
+      WidgetTester tester,
+    ) async {
       when(() => mockAuth.currentSession).thenReturn(null);
       final notifier = AuthNotifier(auth: mockAuth);
       final router = createRouter(notifier);
@@ -121,10 +129,9 @@ void main() {
       expect(router.state.matchedLocation, '/auth');
 
       // Simulate sign-in via stream event.
-      authStreamController.add(AuthState(
-        AuthChangeEvent.signedIn,
-        _fakeSession(),
-      ));
+      authStreamController.add(
+        AuthState(AuthChangeEvent.signedIn, _fakeSession()),
+      );
       await tester.pumpAndSettle();
 
       // Should now be redirected to /access.
@@ -141,9 +148,7 @@ class _TestApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: router,
-    );
+    return MaterialApp.router(routerConfig: router);
   }
 }
 

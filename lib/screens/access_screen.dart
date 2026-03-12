@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AccessScreen extends StatelessWidget {
@@ -38,6 +39,11 @@ class AccessScreen extends StatelessWidget {
               Text('Created: ${user?.createdAt ?? 'Unknown'}'),
               const SizedBox(height: 32),
               FilledButton(
+                onPressed: () => context.go('/feedback'),
+                child: const Text('Get Hook Feedback'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
                 onPressed: () async {
                   await _resolvedAuth.signOut();
                 },

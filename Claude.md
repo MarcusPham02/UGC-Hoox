@@ -22,6 +22,7 @@ flutter run --dart-define-from-file=.env.json
 flutter build web --dart-define-from-file=.env.json
 flutter build apk --dart-define-from-file=.env.json
 flutter build ios --dart-define-from-file=.env.json
+flutter build ipa --dart-define-from-file=.env.json  # iOS archive for App Store
 
 # Tests
 flutter test                        # all tests
@@ -69,7 +70,7 @@ lib/
 
 - **Auth flow:** `AuthNotifier` listens to Supabase `onAuthStateChange`, calls `notifyListeners()`. GoRouter uses it as `refreshListenable` to re-run redirect logic automatically. No manual `context.go()` after login/logout.
 - **Redirect guard:** Not logged in + `/access` → redirect to `/auth`. Logged in + `/auth` → redirect to `/access`.
-- **Dependency injection for testability:** `AuthNotifier` and `AccessScreen` accept an optional `GoTrueClient` parameter, defaulting to `Supabase.instance.client.auth`. This avoids needing `Supabase.initialize()` in tests.
+- **Dependency injection for testability:** `AuthNotifier`, `AuthScreen`, and `AccessScreen` accept an optional `GoTrueClient` parameter, defaulting to `Supabase.instance.client.auth`. This avoids needing `Supabase.initialize()` in tests.
 - **Theming:** Material3 with `ColorScheme.fromSeed(seedColor: Colors.deepPurple)`.
 - **No state management library** (no Provider/Riverpod/BLoC).
 
@@ -86,13 +87,16 @@ For `AuthNotifier` tests, create a `StreamController<AuthState>.broadcast()` and
 
 ## Deployment
 
-- **Web:** Netlify — configured in `netlify.toml`, publishes `build/web`, SPA redirects enabled for GoRouter
+- **Web:** Netlify — configured in `netlify.toml`, publishes `build/web`, SPA redirects enabled for GoRouter. CLI accessible via `npx netlify`
 - **iOS:** Privacy manifest at `ios/Runner/PrivacyInfo.xcprivacy` (UserDefaults + boot time APIs declared)
 - **Android:** Release signing configured in `build.gradle.kts` via `key.properties`
+
+## CI
+
+- **Trivy SAST scan** runs on push/PR to `main` (`.github/workflows/trivy-scan.yml`) — checks for HIGH/CRITICAL vulnerabilities
 
 ## Code Style
 
 - Keep functions and classes separate for decoupling and testability
 - Test new functions and correct them if needed
 - Linting: `package:flutter_lints/flutter.yaml` (see `analysis_options.yaml`)
-- Testing: `mocktail` for mocks. Mock `GoTrueClient` to test auth logic without Supabase initialization.

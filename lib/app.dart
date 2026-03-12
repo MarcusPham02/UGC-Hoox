@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'auth/auth_notifier.dart';
 import 'router/app_router.dart';
 
+// Root widget — owns the auth notifier and router so they share the same lifecycle.
+// Using StatefulWidget here so I can properly dispose the auth subscription.
 class HooksApp extends StatefulWidget {
   const HooksApp({super.key});
 
@@ -18,12 +20,14 @@ class _HooksAppState extends State<HooksApp> {
   @override
   void initState() {
     super.initState();
+    // Create the auth notifier first since the router depends on it
     _authNotifier = AuthNotifier();
     _router = createRouter(_authNotifier);
   }
 
   @override
   void dispose() {
+    // Clean up the auth stream subscription
     _authNotifier.dispose();
     super.dispose();
   }
