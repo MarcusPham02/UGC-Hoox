@@ -57,6 +57,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
+    if (_auth.currentSession == null) {
+      setState(() {
+        _errorMessage =
+            'Your session has expired. Please request a new password reset link.';
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;

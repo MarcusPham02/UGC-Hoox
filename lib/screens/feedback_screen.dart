@@ -83,11 +83,21 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             TextField(
               controller: _promptController,
               maxLines: 4,
+              maxLength: 500,
               decoration: const InputDecoration(
                 labelText: 'Enter your hook',
                 hintText: 'Write your attention-grabbing opener here...',
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 8),
+
+            // Privacy notice
+            Text(
+              'Your text will be sent to Google Gemini AI for analysis.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
             ),
             const SizedBox(height: 16),
 

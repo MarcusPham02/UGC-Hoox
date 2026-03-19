@@ -48,8 +48,14 @@ class AuthNotifier extends ChangeNotifier {
       }
     });
   }
+  void setPasswordRecovery() {
+    _isPasswordRecovery = true;
+    notifyListeners();
+  }
+
   void clearPasswordRecovery() {
     _isPasswordRecovery = false;
+    notifyListeners();
   }
 
   //Memory Leak//

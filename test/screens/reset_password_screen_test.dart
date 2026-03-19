@@ -8,6 +8,18 @@ class MockGoTrueClient extends Mock implements GoTrueClient {}
 
 class FakeUserAttributes extends Fake implements UserAttributes {}
 
+Session _fakeSession() => Session(
+      accessToken: 'fake-token',
+      tokenType: 'bearer',
+      user: User(
+        id: 'test-id',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: '2025-01-01T00:00:00Z',
+      ),
+    );
+
 void main() {
   late MockGoTrueClient mockAuth;
 
@@ -17,6 +29,9 @@ void main() {
 
   setUp(() {
     mockAuth = MockGoTrueClient();
+    // Default: stub currentSession to return a valid session.
+    // Tests that need no session can override this.
+    when(() => mockAuth.currentSession).thenReturn(_fakeSession());
   });
 
   Widget buildTestWidget({

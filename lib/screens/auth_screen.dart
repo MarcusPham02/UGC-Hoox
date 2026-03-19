@@ -146,7 +146,7 @@ class _AuthScreenState extends State<AuthScreen> {
       final siteUrl = SupabaseConfig.siteUrl;
       await _auth.resetPasswordForEmail(
         email,
-        redirectTo: siteUrl.isNotEmpty ? siteUrl : null,
+        redirectTo: siteUrl.isNotEmpty ? '$siteUrl/reset-password' : null,
       );
       if (mounted) {
         setState(() {

@@ -1,0 +1,14 @@
+.git/
+.idea/
+.vscode/
+.dart_tool/
+.pub-cache/
+build/
+ios/
+android/
+*.iml
+.DS_Store
+.env.json
+.netlify/
+docs/
+test/

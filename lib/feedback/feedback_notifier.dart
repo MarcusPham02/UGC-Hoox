@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/hook.dart';
 import '../services/feedback_service.dart';
 import '../services/hooks_service.dart';
 
@@ -25,8 +24,7 @@ class FeedbackNotifier extends ChangeNotifier {
       categories = await _hooksService.getCategories();
       notifyListeners();
     } catch (_) {
-      // Hooks table may not exist yet — silently skip, the feedback
-      // service will fall back to built-in sample hooks.
+      // Hooks table may not exist yet — silently skip.
     }
   }
 
@@ -42,16 +40,9 @@ class FeedbackNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Try fetching hooks from Supabase; fall back to empty list
-      // so FeedbackService uses its built-in sample hooks.
-      var hooks = <Hook>[];
-      try {
-        hooks = await _hooksService.getHooks(category: selectedCategory);
-      } catch (_) {}
-
       final result = await _feedbackService.getFeedback(
         userPrompt: userPrompt,
-        referenceHooks: hooks,
+        category: selectedCategory,
       );
       feedback = result;
     } catch (e) {

@@ -33,10 +33,6 @@ class AccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text('Email: ${user?.email ?? 'Unknown'}'),
-              const SizedBox(height: 8),
-              Text('User ID: ${user?.id ?? 'Unknown'}'),
-              const SizedBox(height: 8),
-              Text('Created: ${user?.createdAt ?? 'Unknown'}'),
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: () => context.go('/feedback'),

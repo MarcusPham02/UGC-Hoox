@@ -28,8 +28,9 @@ void main() {
       expect(find.text('Sign Out'), findsOneWidget);
       expect(find.text('Access'), findsOneWidget);
       expect(find.text('Email: test@example.com'), findsOneWidget);
-      expect(find.text('User ID: abc-123'), findsOneWidget);
-      expect(find.text('Created: 2025-01-01T00:00:00Z'), findsOneWidget);
+      // User ID and Created are no longer displayed (PII reduction)
+      expect(find.text('User ID: abc-123'), findsNothing);
+      expect(find.text('Created: 2025-01-01T00:00:00Z'), findsNothing);
     });
 
     testWidgets('renders Unknown when user is null', (tester) async {
@@ -41,8 +42,8 @@ void main() {
       ));
 
       expect(find.text('Email: Unknown'), findsOneWidget);
-      expect(find.text('User ID: Unknown'), findsOneWidget);
-      expect(find.text('Created: Unknown'), findsOneWidget);
+      expect(find.text('User ID: Unknown'), findsNothing);
+      expect(find.text('Created: Unknown'), findsNothing);
     });
   });
 }

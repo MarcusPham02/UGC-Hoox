@@ -7,7 +7,9 @@ import 'router/app_router.dart';
 // Root widget — owns the auth notifier and router so they share the same lifecycle.
 // Using StatefulWidget here so I can properly dispose the auth subscription.
 class HooksApp extends StatefulWidget {
-  const HooksApp({super.key});
+  final bool isPasswordRecovery;
+
+  const HooksApp({super.key, this.isPasswordRecovery = false});
 
   @override
   State<HooksApp> createState() => _HooksAppState();
@@ -22,6 +24,11 @@ class _HooksAppState extends State<HooksApp> {
     super.initState();
     // Create the auth notifier first since the router depends on it
     _authNotifier = AuthNotifier();
+    // If we detected a password recovery URL before Supabase init,
+    // set the flag now so GoRouter redirects to /reset-password.
+    if (widget.isPasswordRecovery) {
+      _authNotifier.setPasswordRecovery();
+    }
     _router = createRouter(_authNotifier);
   }
 

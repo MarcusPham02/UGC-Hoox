@@ -306,7 +306,8 @@ void main() {
     });
 
     testWidgets('shows success message after reset request', (tester) async {
-      when(() => mockAuth.resetPasswordForEmail(any()))
+      when(() => mockAuth.resetPasswordForEmail(any(),
+              redirectTo: any(named: 'redirectTo')))
           .thenAnswer((_) async {});
 
       await tester.pumpWidget(buildTestWidget(auth: mockAuth));
@@ -323,7 +324,8 @@ void main() {
     });
 
     testWidgets('shows error on AuthException', (tester) async {
-      when(() => mockAuth.resetPasswordForEmail(any()))
+      when(() => mockAuth.resetPasswordForEmail(any(),
+              redirectTo: any(named: 'redirectTo')))
           .thenThrow(const AuthException(
         'Rate limit exceeded',
         statusCode: '429',

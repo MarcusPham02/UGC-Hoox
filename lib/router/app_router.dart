@@ -9,7 +9,6 @@ import '../screens/reset_password_screen.dart';
 
 GoRouter createRouter(AuthNotifier authNotifier) {
   return GoRouter(
-    initialLocation: '/',
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final isLoggedIn = authNotifier.isLoggedIn;
@@ -21,7 +20,8 @@ GoRouter createRouter(AuthNotifier authNotifier) {
       }
 
       // Not logged in and trying to access protected page -> send to auth
-      if (!isLoggedIn && (location == '/access' || location == '/feedback' || location == '/reset-password')) {
+      if (!isLoggedIn && !authNotifier.isPasswordRecovery &&
+          (location == '/access' || location == '/feedback' || location == '/reset-password')) {
         return '/auth';
       }
 
