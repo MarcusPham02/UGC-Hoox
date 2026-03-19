@@ -19,6 +19,7 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
+          version: 'v0.69.3'
           trivy-config: trivy.yaml
 
   secret-scan:
@@ -33,6 +34,7 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
+          version: 'v0.69.3'
           scanners: 'secret'
           exit-code: '1'
 
@@ -51,6 +53,7 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: '.'
+          version: 'v0.69.3'
           severity: 'HIGH,CRITICAL'
           format: 'sarif'
           output: 'trivy-results.sarif'
