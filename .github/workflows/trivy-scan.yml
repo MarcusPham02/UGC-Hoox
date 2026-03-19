@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
@@ -15,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Vulnerability scan — fails the build on HIGH/CRITICAL findings
+      # Vulnerability scan — writes results first, then fails if issues found
       - name: Run vulnerability scan
         uses: aquasecurity/trivy-action@0.29.0
         with:
@@ -23,10 +26,19 @@ jobs:
           scan-ref: '.'
           severity: 'HIGH,CRITICAL'
           format: 'table'
-          exit-code: '1'
           output: 'vulnerability.txt'
 
-      # Secret scan — catches accidentally committed keys/tokens
+      - name: Check vulnerability results
+        run: |
+          if [ -s vulnerability.txt ]; then
+            cat vulnerability.txt
+            echo "::error::HIGH/CRITICAL vulnerabilities found"
+            exit 1
+          else
+            echo "No HIGH/CRITICAL vulnerabilities found"
+          fi
+
+      # Secret scan — writes results first, then fails if issues found
       - name: Run secret scan
         if: always()
         uses: aquasecurity/trivy-action@0.29.0
@@ -34,9 +46,19 @@ jobs:
           scan-type: 'fs'
           scan-ref: '.'
           scanners: 'secret'
-          exit-code: '1'
           format: 'table'
           output: 'secrets.txt'
+
+      - name: Check secret results
+        if: always()
+        run: |
+          if [ -s secrets.txt ]; then
+            cat secrets.txt
+            echo "::error::Secrets detected in repository"
+            exit 1
+          else
+            echo "No secrets detected"
+          fi
 
       # SARIF upload — populates GitHub Security tab with findings
       - name: Run SARIF scan
