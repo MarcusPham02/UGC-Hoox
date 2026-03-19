@@ -10,59 +10,49 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  trivy-scan:
+  vulnerability-scan:
+    name: Vulnerability Scan
     runs-on: ubuntu-latest
-    permissions:
-      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Vulnerability scan — writes results first, then fails if issues found
-      - name: Run vulnerability scan
+      - name: Run Trivy vulnerability scan
         uses: aquasecurity/trivy-action@0.29.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
           severity: 'HIGH,CRITICAL'
           format: 'table'
-          output: 'vulnerability.txt'
+          exit-code: '1'
 
-      - name: Check vulnerability results
-        run: |
-          if [ -s vulnerability.txt ]; then
-            cat vulnerability.txt
-            echo "::error::HIGH/CRITICAL vulnerabilities found"
-            exit 1
-          else
-            echo "No HIGH/CRITICAL vulnerabilities found"
-          fi
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # Secret scan — writes results first, then fails if issues found
-      - name: Run secret scan
-        if: always()
+      - name: Run Trivy secret scan
         uses: aquasecurity/trivy-action@0.29.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
           scanners: 'secret'
           format: 'table'
-          output: 'secrets.txt'
+          exit-code: '1'
 
-      - name: Check secret results
-        if: always()
-        run: |
-          if [ -s secrets.txt ]; then
-            cat secrets.txt
-            echo "::error::Secrets detected in repository"
-            exit 1
-          else
-            echo "No secrets detected"
-          fi
+  sarif-upload:
+    name: SARIF Upload
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # SARIF upload — populates GitHub Security tab with findings
-      - name: Run SARIF scan
-        if: always()
+      - name: Run Trivy SARIF scan
         uses: aquasecurity/trivy-action@0.29.0
         with:
           scan-type: 'fs'
@@ -72,16 +62,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload SARIF to GitHub Security
-        if: always() && hashFiles('trivy-results.sarif') != ''
+        if: hashFiles('trivy-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
-
-      - name: Upload scan artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: trivy-scan-results
-          path: |
-            vulnerability.txt
-            secrets.txt
