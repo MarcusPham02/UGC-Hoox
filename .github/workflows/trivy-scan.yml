@@ -17,7 +17,7 @@ jobs:
 
       # Vulnerability scan — fails the build on HIGH/CRITICAL findings
       - name: Run vulnerability scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -29,7 +29,7 @@ jobs:
       # Secret scan — catches accidentally committed keys/tokens
       - name: Run secret scan
         if: always()
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -41,7 +41,7 @@ jobs:
       # SARIF upload — populates GitHub Security tab with findings
       - name: Run SARIF scan
         if: always()
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -50,7 +50,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload SARIF to GitHub Security
-        if: always()
+        if: always() && hashFiles('trivy-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
