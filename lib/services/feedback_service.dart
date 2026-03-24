@@ -13,6 +13,8 @@ class FeedbackService {
   Future<String> getFeedback({
     required String userPrompt,
     String? category,
+    String? audience,
+    List<String>? tones,
   }) async {
     final response = await _functions.invoke(
       'get-feedback',
@@ -20,6 +22,9 @@ class FeedbackService {
         'userPrompt': userPrompt,
         // ignore: use_null_aware_elements
         if (category != null) 'category': category,
+        // ignore: use_null_aware_elements
+        if (audience != null) 'audience': audience,
+        if (tones != null && tones.isNotEmpty) 'tones': tones,
       },
     );
 

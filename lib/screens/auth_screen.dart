@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../config/supabase_config.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -143,10 +142,9 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      final siteUrl = SupabaseConfig.siteUrl;
       await _auth.resetPasswordForEmail(
         email,
-        redirectTo: siteUrl.isNotEmpty ? '$siteUrl/reset-password' : null,
+        redirectTo: '${SupabaseConfig.siteUrl.replaceAll(RegExp(r'/+$'), '')}/auth/confirm',
       );
       if (mounted) {
         setState(() {

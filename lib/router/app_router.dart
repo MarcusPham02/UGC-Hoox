@@ -7,8 +7,9 @@ import '../screens/feedback_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/reset_password_screen.dart';
 
-GoRouter createRouter(AuthNotifier authNotifier) {
+GoRouter createRouter(AuthNotifier authNotifier, {String? initialLocation}) {
   return GoRouter(
+    initialLocation: initialLocation ?? '/',
     refreshListenable: authNotifier,
     redirect: (context, state) {
       final isLoggedIn = authNotifier.isLoggedIn;

@@ -8,7 +8,7 @@ ios/
 android/
 *.iml
 .DS_Store
-.env.json
+
 .netlify/
 docs/
 test/

@@ -13,6 +13,20 @@ class FeedbackNotifier extends ChangeNotifier {
   List<String> categories = [];
   String? selectedCategory;
 
+  // Wizard state
+  int currentStep = 0;
+  String? audience;
+  List<String> selectedTones = [];
+
+  static const List<String> availableTones = [
+    'casual',
+    'professional',
+    'provocative',
+    'inspirational',
+    'humorous',
+    'urgent',
+  ];
+
   FeedbackNotifier({
     HooksService? hooksService,
     FeedbackService? feedbackService,
@@ -33,6 +47,54 @@ class FeedbackNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Wizard navigation
+  void nextStep() {
+    if (currentStep < 3) {
+      currentStep++;
+      notifyListeners();
+    }
+  }
+
+  void previousStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      notifyListeners();
+    }
+  }
+
+  void goToStep(int step) {
+    if (step >= 0 && step <= 3) {
+      currentStep = step;
+      notifyListeners();
+    }
+  }
+
+  // Audience — no notifyListeners to avoid per-keystroke rebuilds
+  void setAudience(String? value) {
+    audience = value?.trim();
+  }
+
+  // Tone toggling (max 2)
+  void toggleTone(String tone) {
+    if (selectedTones.contains(tone)) {
+      selectedTones.remove(tone);
+    } else if (selectedTones.length < 2) {
+      selectedTones.add(tone);
+    }
+    notifyListeners();
+  }
+
+  // Reset wizard for a new submission
+  void resetWizard() {
+    currentStep = 0;
+    selectedCategory = null;
+    audience = null;
+    selectedTones = [];
+    feedback = null;
+    error = null;
+    notifyListeners();
+  }
+
   Future<void> submitPrompt(String userPrompt) async {
     isLoading = true;
     feedback = null;
@@ -43,6 +105,8 @@ class FeedbackNotifier extends ChangeNotifier {
       final result = await _feedbackService.getFeedback(
         userPrompt: userPrompt,
         category: selectedCategory,
+        audience: audience,
+        tones: selectedTones.isNotEmpty ? selectedTones : null,
       );
       feedback = result;
     } catch (e) {

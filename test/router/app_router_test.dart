@@ -113,6 +113,23 @@ void main() {
       notifier.dispose();
     });
 
+    testWidgets('password recovery redirects to /reset-password', (
+      WidgetTester tester,
+    ) async {
+      when(() => mockAuth.currentSession).thenReturn(_fakeSession());
+      final notifier = AuthNotifier(auth: mockAuth);
+      notifier.setPasswordRecovery();
+      final router = createRouter(notifier);
+
+      await tester.pumpWidget(_TestApp(router: router));
+      await tester.pumpAndSettle();
+
+      // Recovery flag is set, so any route should redirect to /reset-password.
+      expect(router.state.matchedLocation, '/reset-password');
+
+      notifier.dispose();
+    });
+
     testWidgets('redirect triggers when auth state changes', (
       WidgetTester tester,
     ) async {

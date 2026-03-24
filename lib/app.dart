@@ -29,7 +29,10 @@ class _HooksAppState extends State<HooksApp> {
     if (widget.isPasswordRecovery) {
       _authNotifier.setPasswordRecovery();
     }
-    _router = createRouter(_authNotifier);
+    _router = createRouter(
+      _authNotifier,
+      initialLocation: widget.isPasswordRecovery ? '/reset-password' : null,
+    );
   }
 
   @override
