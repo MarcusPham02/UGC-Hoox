@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
+import '../auth/auth_notifier.dart';
 import '../feedback/feedback_notifier.dart';
 import '../services/feedback_service.dart';
 import '../services/hooks_service.dart';
@@ -8,11 +9,13 @@ import '../services/hooks_service.dart';
 class FeedbackScreen extends StatefulWidget {
   final HooksService? hooksService;
   final FeedbackService? feedbackService;
+  final AuthNotifier? authNotifier;
 
   const FeedbackScreen({
     super.key,
     this.hooksService,
     this.feedbackService,
+    this.authNotifier,
   });
 
   @override
@@ -30,6 +33,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     _notifier = FeedbackNotifier(
       hooksService: widget.hooksService,
       feedbackService: widget.feedbackService,
+      authNotifier: widget.authNotifier,
     );
     _notifier.addListener(_onNotifierChanged);
     _notifier.loadCategories();

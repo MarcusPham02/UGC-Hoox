@@ -40,7 +40,11 @@ GoRouter createRouter(AuthNotifier authNotifier, {String? initialLocation}) {
       ),
       GoRoute(
         path: '/auth',
-        builder: (context, state) => AuthScreen(auth: authNotifier.auth),
+        builder: (context, state) => AuthScreen(
+          auth: authNotifier.auth,
+          sessionExpired: authNotifier.sessionExpired,
+          onSessionExpiredShown: () => authNotifier.clearSessionExpired(),
+        ),
       ),
       GoRoute(
         path: '/access',
@@ -48,7 +52,9 @@ GoRouter createRouter(AuthNotifier authNotifier, {String? initialLocation}) {
       ),
       GoRoute(
         path: '/feedback',
-        builder: (context, state) => const FeedbackScreen(),
+        builder: (context, state) => FeedbackScreen(
+          authNotifier: authNotifier,
+        ),
       ),
       GoRoute(
         path: '/reset-password',

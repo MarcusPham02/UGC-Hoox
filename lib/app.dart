@@ -33,6 +33,12 @@ class _HooksAppState extends State<HooksApp> {
       _authNotifier,
       initialLocation: widget.isPasswordRecovery ? '/reset-password' : null,
     );
+
+    // Proactively refresh the session on app start so stale tokens
+    // are caught immediately rather than on the first API call.
+    if (!widget.isPasswordRecovery) {
+      _authNotifier.refreshSession();
+    }
   }
 
   @override

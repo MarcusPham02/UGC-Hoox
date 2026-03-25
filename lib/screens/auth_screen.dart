@@ -4,10 +4,17 @@ import '../config/supabase_config.dart';
 
 class AuthScreen extends StatefulWidget {
   final GoTrueClient? _auth;
+  final bool sessionExpired;
+  final VoidCallback? onSessionExpiredShown;
 
   /// Pass [auth] to inject a mock for testing.
   /// Defaults to the Supabase singleton auth client.
-  const AuthScreen({super.key, GoTrueClient? auth}) : _auth = auth;
+  const AuthScreen({
+    super.key,
+    GoTrueClient? auth,
+    this.sessionExpired = false,
+    this.onSessionExpiredShown,
+  }) : _auth = auth;
 
   @override
   State<AuthScreen> createState() => _AuthScreenState();
@@ -23,6 +30,15 @@ class _AuthScreenState extends State<AuthScreen> {
 
   GoTrueClient get _auth =>
       widget._auth ?? Supabase.instance.client.auth;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sessionExpired) {
+      _errorMessage = 'Your session has expired. Please sign in again.';
+      widget.onSessionExpiredShown?.call();
+    }
+  }
 
   @override
   void dispose() {

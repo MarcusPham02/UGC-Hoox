@@ -4,103 +4,63 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Hooks is a Flutter web app ("Connecting people through shared moments"). It uses Supabase as its backend (auth, database, Edge Functions) and Google Gemini for AI-powered hook feedback via a server-side Edge Function.
-
-- **Dart SDK:** ^3.11.0
-- **App ID:** com.hooks.hooks
-- **Package name:** hooks_app (to avoid pub.dev conflicts)
+Hooks is a Flutter app ("connecting people through shared moments") that helps users craft attention-grabbing content openers ("hooks"). Users submit hook text and receive AI-powered feedback from Gemini via a Supabase Edge Function. The Dart package is named `hooks_app` (not `hooks`).
 
 ## Build & Run Commands
 
-All run/build commands require credentials passed via `--dart-define-from-file`:
-
 ```bash
-# Run (debug, web on Chrome)
-flutter run -d chrome --dart-define-from-file=.env.json --web-port=3000
+# Install dependencies
+flutter pub get
 
-# Build web
-flutter build web --dart-define-from-file=.env.json
+# Run (requires .env.json — see .env.json.example for required keys)
+flutter run --dart-define-from-file=.env.json
 
-# Tests
-flutter test                        # all tests
-flutter test test/widget_test.dart  # single test file
+# Run on Chrome (web target)
+flutter run -d chrome --dart-define-from-file=.env.json
 
-# Code analysis
+# Build web release
+flutter build web --release --dart-define-from-file=.env.json
+
+# Run all tests
+flutter test
+
+# Run a single test file
+flutter test test/auth/auth_notifier_test.dart
+
+# Analyze (lint)
 flutter analyze
 
-# Docker (production-like web build, fixed port)
-docker compose up --build        # Build and run on http://localhost:3000
-docker compose down              # Stop
+# Serve Edge Functions locally
+supabase functions serve
 ```
 
-## Environment Setup
+## Secrets & Environment
 
-Secrets are injected at compile time via Dart defines, never hardcoded:
-- Copy `.env.json.example` to `.env.json` and fill in real credentials
-- Required keys: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_URL`
-- `GEMINI_API_KEY` is stored as a Supabase secret (not in `.env.json`) — set via `supabase secrets set GEMINI_API_KEY=...`
-- `SITE_URL` is used for Supabase auth redirects (e.g., password reset emails). Set to your running app's URL (e.g., `http://localhost:3000` for dev, Netlify URL for prod)
-- `.env.json` is gitignored; the `.example` file is tracked
-- **Docker builds** require `.env.json` in the project root (it's not excluded by `.dockerignore` — the Dockerfile copies it for `--dart-define-from-file`)
-- **Netlify builds:** `netlify.toml` runs `flutter build web --release` without `--dart-define-from-file` — Dart defines must be configured via Netlify's build environment or the build command needs updating
+All secrets live in `.env.json` (gitignored). Required keys: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_URL`. The Edge Function also needs `GEMINI_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` set in the Supabase environment. Secrets are injected at compile time via `--dart-define-from-file=.env.json` and read through `SupabaseConfig` using `String.fromEnvironment`.
 
 ## Architecture
 
-Code lives under `lib/` organized by concern: `auth/`, `config/`, `models/`, `services/`, `feedback/`, `router/`, `screens/`. Entry point is `main.dart` (Supabase init + PKCE handling) → `app.dart` (owns `AuthNotifier` + `GoRouter`).
+**State management:** `ChangeNotifier` pattern throughout — no third-party state management libraries. `AuthNotifier` and `FeedbackNotifier` are the two notifiers.
 
-### Routes
+**Routing:** `go_router` with `refreshListenable` tied to `AuthNotifier`. Router redirect logic handles auth guards — `/access`, `/feedback`, and `/reset-password` require authentication; unauthenticated users redirect to `/auth`.
 
-Defined in `router/app_router.dart` via `createRouter()`:
+**Dependency injection:** Constructor-based DI on all services and notifiers. Default constructors use `Supabase.instance.client` singletons; tests inject mocks via optional constructor parameters.
 
-| Path | Screen | Auth required |
-|------|--------|---------------|
-| `/` | HomeScreen | No |
-| `/auth` | AuthScreen | No (redirects to `/access` if logged in) |
-| `/access` | AccessScreen | Yes (redirects to `/auth` if not logged in) |
-| `/feedback` | FeedbackScreen | Yes |
-| `/reset-password` | ResetPasswordScreen | Yes (bypassed during password recovery flow) |
+**Feedback flow:**
+1. Flutter client (`FeedbackService`) calls the `get-feedback` Supabase Edge Function via `FunctionsClient.invoke`
+2. Edge Function (`supabase/functions/get-feedback/index.ts`) validates JWT, rate-limits per user, fetches reference hooks from the `hooks` table, builds a prompt, and calls the Gemini API server-side
+3. Response flows back through `FeedbackNotifier` to the UI
 
-Note: `ProfileScreen` exists in `screens/` but is **not registered** in the router.
+**Password recovery:** Detected from URL params before `Supabase.initialize()` on web (`recovery_detection.dart`), then token is verified via OTP and `AuthNotifier.isPasswordRecovery` drives router redirects.
 
-### Key Patterns
-
-- **Auth flow:** `AuthNotifier` listens to Supabase `onAuthStateChange`, calls `notifyListeners()`. GoRouter uses it as `refreshListenable` to re-run redirect logic automatically. No manual `context.go()` after login/logout.
-- **Password recovery (web):** `resetPasswordForEmail` sends email linking to `/auth/confirm?token_hash=xxx&type=recovery&next=/reset-password`. On return, `main.dart` uses `detectRecoveryFromUrl()` (in `auth/recovery_detection.dart`) to parse the URL *before* `Supabase.initialize()`, extracting the `token_hash` and detecting the recovery type. It then calls `verifyOTP(tokenHash:, type: recovery)` to establish a session and passes `isPasswordRecovery: true` to `HooksApp`, which calls `AuthNotifier.setPasswordRecovery()` so GoRouter redirects to `/reset-password`. This pre-init approach is necessary because the SDK's `passwordRecovery` auth event fires on a broadcast stream before `AuthNotifier` subscribes.
-- **Redirect guard:** Not logged in + protected route → redirect to `/auth`. Logged in + `/auth` → redirect to `/access`. The `/reset-password` guard is bypassed when `isPasswordRecovery` is true to avoid a redirect race.
-- **Dependency injection for testability:** `AuthNotifier`, screens, and services accept optional client parameters (e.g., `GoTrueClient`, `FunctionsClient`, `SupabaseClient`), defaulting to Supabase singletons. This avoids needing `Supabase.initialize()` in tests.
-- **Feedback system:** User submits a hook text + optional category → `FeedbackService` invokes the `get-feedback` Supabase Edge Function → Edge Function fetches reference hooks from the `hooks` table server-side (falls back to hardcoded samples if table doesn't exist), calls Gemini (gemini-2.0-flash), and returns structured feedback. The Gemini API key never touches the client. Feedback is rendered as markdown via `flutter_markdown`.
-- **No state management library** — only `ChangeNotifier` (`AuthNotifier`, `FeedbackNotifier`).
-
-## Testing
-
-Tests mirror the `lib/` structure under `test/`. Uses `mocktail` for mocks.
-
-**Pattern:** Mock `GoTrueClient` and inject it via constructor to test auth logic without Supabase initialization:
-```dart
-class MockGoTrueClient extends Mock implements GoTrueClient {}
-```
-
-For `AuthNotifier` tests, create a `StreamController<AuthState>.broadcast()` and stub `mockAuth.onAuthStateChange` to return its stream. Use `await Future<void>.delayed(Duration.zero)` to let stream events propagate before asserting.
+**Auth token refresh:** `AuthNotifier.refreshSession()` runs on app start; if the refresh token is expired, the user is signed out and `sessionExpired` flag triggers a UI message. `FeedbackNotifier.submitPrompt` catches `FeedbackAuthException` (401 from Edge Function) and retries once after refreshing the session.
 
 ## Deployment
 
-- **Web:** Netlify — configured in `netlify.toml`, publishes `build/web`, SPA redirects enabled for GoRouter. Security headers (CSP, HSTS, X-Frame-Options) configured in `netlify.toml`. CLI accessible via `npx netlify`.
-- **Docker:** Multi-stage build (Flutter build → nginx:alpine). Read-only container (`read_only: true` in compose) with `tmpfs` mounts for nginx cache/run dirs. Resource limits (256M RAM, 0.5 CPU). Port 3000 → 80. Custom `nginx.conf` for SPA routing.
-- **Supabase Edge Functions:** `supabase/functions/` — deployed via `supabase functions deploy`. Secrets set via `supabase secrets set`.
+- **Web (Netlify):** Config in `netlify.toml`. Includes security headers (CSP, HSTS) and SPA redirect.
+- **Docker:** Multi-stage `Dockerfile` (Flutter build → nginx:alpine). `docker-compose.yml` maps port 3000→80 with read-only filesystem and security hardening.
+- **CI:** GitHub Actions Trivy scan (vulnerability + secret scanning) on push/PR to main.
 
-## Supabase
+## Testing Patterns
 
-- **Edge Functions:** `supabase/functions/get-feedback/index.ts` — Deno-based, uses `Deno.serve()`. Rate-limited (10 req/min per user, in-memory). Allowed categories: `social_media`, `video_hook`, `blog_intro`, `email_subject`. Max prompt length: 500 chars.
-- **Migrations:** `supabase/migrations/` — SQL migrations managed via Supabase CLI (`supabase db push` / `supabase migration new`).
-- **Config:** `supabase/config.toml` — local dev configuration.
-
-## CI
-
-- **Trivy** runs on push/PR to `main` (`.github/workflows/trivy-scan.yml`): vulnerability scan, secret scan, and SARIF upload to GitHub Security tab.
-
-## Code Style
-
-- Linting: `package:flutter_lints/flutter.yaml` (see `analysis_options.yaml`)
-- Theming: Material3 with `ColorScheme.fromSeed(seedColor: Colors.deepPurple)`
-- Keep functions and classes separate for decoupling and testability
-- Test new functions and correct them if needed
+Tests use `mocktail` for mocking. Test files mirror `lib/` structure under `test/`. Services and notifiers accept optional constructor parameters for injecting mock Supabase clients (`GoTrueClient`, `FunctionsClient`, `SupabaseClient`).

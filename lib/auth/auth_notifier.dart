@@ -19,6 +19,9 @@ class AuthNotifier extends ChangeNotifier {
   bool _isPasswordRecovery = false;
   bool get isPasswordRecovery => _isPasswordRecovery;
 
+  bool _sessionExpired = false;
+  bool get sessionExpired => _sessionExpired;
+
   AuthNotifier({GoTrueClient? auth})
     : auth = auth ?? Supabase.instance.client.auth {
     _isLoggedIn = this.auth.currentSession != null;
@@ -56,6 +59,23 @@ class AuthNotifier extends ChangeNotifier {
   void clearPasswordRecovery() {
     _isPasswordRecovery = false;
     notifyListeners();
+  }
+
+  /// Proactively refreshes the session token.
+  /// If the refresh token is also expired, signs the user out
+  /// and sets [sessionExpired] so the auth screen can show a message.
+  Future<void> refreshSession() async {
+    if (auth.currentSession == null) return;
+    try {
+      await auth.refreshSession();
+    } catch (_) {
+      _sessionExpired = true;
+      await auth.signOut();
+    }
+  }
+
+  void clearSessionExpired() {
+    _sessionExpired = false;
   }
 
   //Memory Leak//

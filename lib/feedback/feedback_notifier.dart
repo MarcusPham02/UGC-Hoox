@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../auth/auth_notifier.dart';
 import '../services/feedback_service.dart';
 import '../services/hooks_service.dart';
 
@@ -27,11 +28,15 @@ class FeedbackNotifier extends ChangeNotifier {
     'urgent',
   ];
 
+  final AuthNotifier? _authNotifier;
+
   FeedbackNotifier({
     HooksService? hooksService,
     FeedbackService? feedbackService,
+    AuthNotifier? authNotifier,
   })  : _hooksService = hooksService ?? HooksService(),
-        _feedbackService = feedbackService ?? FeedbackService();
+        _feedbackService = feedbackService ?? FeedbackService(),
+        _authNotifier = authNotifier;
 
   Future<void> loadCategories() async {
     try {
@@ -95,6 +100,15 @@ class FeedbackNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String> _callFeedback(String userPrompt) {
+    return _feedbackService.getFeedback(
+      userPrompt: userPrompt,
+      category: selectedCategory,
+      audience: audience,
+      tones: selectedTones.isNotEmpty ? selectedTones : null,
+    );
+  }
+
   Future<void> submitPrompt(String userPrompt) async {
     isLoading = true;
     feedback = null;
@@ -102,13 +116,15 @@ class FeedbackNotifier extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _feedbackService.getFeedback(
-        userPrompt: userPrompt,
-        category: selectedCategory,
-        audience: audience,
-        tones: selectedTones.isNotEmpty ? selectedTones : null,
-      );
-      feedback = result;
+      feedback = await _callFeedback(userPrompt);
+    } on FeedbackAuthException {
+      // Token expired — refresh session and retry once.
+      try {
+        await _authNotifier?.refreshSession();
+        feedback = await _callFeedback(userPrompt);
+      } catch (_) {
+        error = 'Your session has expired. Please sign in again.';
+      }
     } catch (e) {
       error = 'Failed to get feedback. Please try again.';
     } finally {
