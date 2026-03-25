@@ -1,0 +1,23 @@
+language: "en-US"
+reviews:
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  path_instructions:
+    - path: "lib/**/*.dart"
+      instructions: |
+        Flutter app using ChangeNotifier pattern for state management, go_router for routing,
+        and constructor-based dependency injection. Supabase is the backend. Review for proper
+        dispose of subscriptions/notifiers and correct use of notifyListeners.
+    - path: "supabase/functions/**/*.ts"
+      instructions: |
+        Supabase Edge Functions running on Deno. Review for input validation, proper JWT
+        verification, rate limiting, and secure handling of the Gemini API key.
+    - path: "test/**/*.dart"
+      instructions: |
+        Tests use mocktail for mocking. Services and notifiers accept optional constructor
+        parameters for injecting mocks. Verify mocks are properly set up and assertions are meaningful.
+chat:
+  auto_reply: true
