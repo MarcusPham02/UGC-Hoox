@@ -40,6 +40,18 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   void _onNotifierChanged() {
+    if (_notifier.error != null && mounted) {
+      final message = _notifier.error!;
+      _notifier.clearError();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 6),
+        ),
+      );
+      return;
+    }
     setState(() {});
   }
 
@@ -304,16 +316,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 ),
           ),
 
-          // Error display
-          if (_notifier.error != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              _notifier.error!,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
-          ],
         ],
       ),
     );

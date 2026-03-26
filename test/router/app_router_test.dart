@@ -113,6 +113,25 @@ void main() {
       notifier.dispose();
     });
 
+    testWidgets(
+      'unauthenticated user accessing /script-analyzer is redirected to /auth',
+      (WidgetTester tester) async {
+        when(() => mockAuth.currentSession).thenReturn(null);
+        final notifier = AuthNotifier(auth: mockAuth);
+        final router = createRouter(notifier);
+
+        await tester.pumpWidget(_TestApp(router: router));
+        await tester.pumpAndSettle();
+
+        router.go('/script-analyzer');
+        await tester.pumpAndSettle();
+
+        expect(router.state.matchedLocation, '/auth');
+
+        notifier.dispose();
+      },
+    );
+
     testWidgets('password recovery redirects to /reset-password', (
       WidgetTester tester,
     ) async {

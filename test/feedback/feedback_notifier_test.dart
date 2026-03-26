@@ -203,7 +203,7 @@ void main() {
       await notifier.submitPrompt('test hook');
 
       expect(notifier.feedback, isNull);
-      expect(notifier.error, 'Failed to get feedback. Please try again.');
+      expect(notifier.error, contains('Failed to get feedback'));
       expect(notifier.isLoading, false);
     });
 

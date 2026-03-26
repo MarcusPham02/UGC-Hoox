@@ -19,6 +19,11 @@ class FeedbackNotifier extends ChangeNotifier {
   String? audience;
   List<String> selectedTones = [];
 
+  void clearError() {
+    error = null;
+    notifyListeners();
+  }
+
   static const List<String> availableTones = [
     'casual',
     'professional',
@@ -122,11 +127,13 @@ class FeedbackNotifier extends ChangeNotifier {
       try {
         await _authNotifier?.refreshSession();
         feedback = await _callFeedback(userPrompt);
-      } catch (_) {
+      } catch (e) {
+        debugPrint('Auth retry failed: $e');
         error = 'Your session has expired. Please sign in again.';
       }
     } catch (e) {
-      error = 'Failed to get feedback. Please try again.';
+      debugPrint('Feedback error: $e');
+      error = 'Failed to get feedback. Please try again later.';
     } finally {
       isLoading = false;
       notifyListeners();

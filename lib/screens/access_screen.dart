@@ -39,6 +39,11 @@ class AccessScreen extends StatelessWidget {
                 child: const Text('Get Hook Feedback'),
               ),
               const SizedBox(height: 12),
+              FilledButton.tonal(
+                onPressed: () => context.go('/script-analyzer'),
+                child: const Text('Analyze Pitch Script'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () async {
                   await _resolvedAuth.signOut();

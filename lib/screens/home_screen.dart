@@ -26,6 +26,11 @@ class HomeScreen extends StatelessWidget {
               onPressed: () => context.go('/auth'),
               child: const Text('Get Started'),
             ),
+            const SizedBox(height: 12),
+            FilledButton.tonal(
+              onPressed: () => context.go('/script-analyzer'),
+              child: const Text('Script Analyzer'),
+            ),
           ],
         ),
       ),

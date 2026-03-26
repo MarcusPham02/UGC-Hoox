@@ -6,6 +6,7 @@ import '../screens/auth_screen.dart';
 import '../screens/feedback_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/reset_password_screen.dart';
+import '../screens/script_analyzer_screen.dart';
 
 GoRouter createRouter(AuthNotifier authNotifier, {String? initialLocation}) {
   return GoRouter(
@@ -22,7 +23,8 @@ GoRouter createRouter(AuthNotifier authNotifier, {String? initialLocation}) {
 
       // Not logged in and trying to access protected page -> send to auth
       if (!isLoggedIn && !authNotifier.isPasswordRecovery &&
-          (location == '/access' || location == '/feedback' || location == '/reset-password')) {
+          (location == '/access' || location == '/feedback' ||
+           location == '/script-analyzer' || location == '/reset-password')) {
         return '/auth';
       }
 
@@ -53,6 +55,12 @@ GoRouter createRouter(AuthNotifier authNotifier, {String? initialLocation}) {
       GoRoute(
         path: '/feedback',
         builder: (context, state) => FeedbackScreen(
+          authNotifier: authNotifier,
+        ),
+      ),
+      GoRoute(
+        path: '/script-analyzer',
+        builder: (context, state) => ScriptAnalyzerScreen(
           authNotifier: authNotifier,
         ),
       ),
