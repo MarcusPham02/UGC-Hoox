@@ -114,16 +114,14 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() {
           if (e.code == 'email_not_confirmed') {
             _errorMessage =
-                'Your email has not been confirmed yet. '
-                'Please check your inbox for a confirmation link.';
-          } else if (e.message == 'Invalid login credentials') {
+                'Unable to sign in. If you recently signed up, '
+                'please check your inbox for a confirmation link.';
+          } else {
             _errorMessage =
                 'Invalid email or password. '
-                'Please check your credentials and try again. '
-                "If you don't have an account, try signing up.";
-          } else {
-            _errorMessage = e.message;
+                'Please check your credentials and try again.';
           }
+          debugPrint('Auth error: ${e.code} - ${e.message}');
         });
       }
     } catch (e) {

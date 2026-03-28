@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'auth/recovery_detection.dart';
 import 'config/supabase_config.dart';
+import 'utils/clear_url_stub.dart'
+    if (dart.library.js_interop) 'utils/clear_url_web.dart';
 
 // App entry point — initialize Supabase before anything else, then launch.
 Future<void> main() async {
@@ -38,6 +40,8 @@ Future<void> main() async {
     } catch (e) {
       debugPrint('Failed to verify OTP: $e');
     }
+    // Remove sensitive token params from browser URL/history.
+    clearSensitiveUrlParams();
   }
 
   runApp(HooksApp(isPasswordRecovery: isPasswordRecovery));

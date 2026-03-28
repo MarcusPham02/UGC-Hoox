@@ -40,9 +40,11 @@ class _ScriptAnalyzerScreenState extends State<ScriptAnalyzerScreen> {
 
   void _onNotifierChanged() {
     if (_notifier.error != null && mounted) {
+      final errorMessage = _notifier.error!;
+      _notifier.clearError();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_notifier.error!),
+          content: Text(errorMessage),
           backgroundColor: Theme.of(context).colorScheme.error,
           duration: const Duration(seconds: 6),
         ),
@@ -54,6 +56,7 @@ class _ScriptAnalyzerScreenState extends State<ScriptAnalyzerScreen> {
   @override
   void dispose() {
     _notifier.removeListener(_onNotifierChanged);
+    _notifier.dispose();
     _scriptController.removeListener(_onTextChanged);
     _scriptController.dispose();
     super.dispose();

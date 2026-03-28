@@ -203,8 +203,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Your email has not been confirmed yet. '
-            'Please check your inbox for a confirmation link.'),
+        find.text('Unable to sign in. If you recently signed up, '
+            'please check your inbox for a confirmation link.'),
         findsOneWidget,
       );
     });
@@ -229,13 +229,12 @@ void main() {
 
       expect(
         find.text('Invalid email or password. '
-            'Please check your credentials and try again. '
-            "If you don't have an account, try signing up."),
+            'Please check your credentials and try again.'),
         findsOneWidget,
       );
     });
 
-    testWidgets('shows raw message for other AuthException errors',
+    testWidgets('shows generic message for other AuthException errors',
         (tester) async {
       when(() => mockAuth.signInWithPassword(
             email: any(named: 'email'),
@@ -254,7 +253,11 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Rate limit exceeded'), findsOneWidget);
+      expect(
+        find.text('Invalid email or password. '
+            'Please check your credentials and try again.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows generic error for unexpected exceptions',

@@ -26,21 +26,29 @@ class ScriptAnalyzerNotifier extends ChangeNotifier {
     try {
       analysis = await _service.analyzeScript(scriptText: scriptText);
     } on ScriptAnalyzerAuthException {
-      // Token expired — refresh session and retry once.
-      try {
-        await _authNotifier?.refreshSession();
-        analysis = await _service.analyzeScript(scriptText: scriptText);
-      } catch (e) {
-        debugPrint('Auth retry failed: $e');
+      if (_authNotifier == null) {
         error = 'Your session has expired. Please sign in again.';
+      } else {
+        // Token expired — refresh session and retry once.
+        try {
+          await _authNotifier.refreshSession();
+          analysis = await _service.analyzeScript(scriptText: scriptText);
+        } catch (e) {
+          debugPrint('Auth retry failed: $e');
+          error = 'Your session has expired. Please sign in again.';
+        }
       }
     } catch (e) {
       debugPrint('Script analysis error: $e');
-      error = 'Failed to analyze script: $e';
+      error = 'Failed to analyze script. Please try again later.';
     } finally {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  void clearError() {
+    error = null;
   }
 
   void reset() {
